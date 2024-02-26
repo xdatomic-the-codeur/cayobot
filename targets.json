@@ -1,0 +1,27 @@
+{
+    "Principaux": {
+        "fichiers": [1100000, 1100000],
+        "tequilla": [630000, 693000],
+        "rubis": [700000, 770000],
+        "bons": [770000, 847000],
+        "diamant": [1300000, 1430000],
+        "panthere": [1730000, 1900000]
+    },
+    "Secondaires": {
+        "Argent": [78750, 83250],
+        "Cannabis": [130500, 135000],
+        "Tableaux": [157500, 180000],
+        "Cocaïne": [198000, 202500],
+        "Lingots": [328333, 333333],
+        "Bureau": [20000, 99000]
+    },
+    "FRAIS": 0.88,
+    "Place": {
+        "Argent": 0.1,
+        "Cannabis": 0.33,
+        "Tableaux": 0.5,
+        "Cocaïne": 0.4,
+        "Lingots": 0.66,
+        "Bureau": 0
+    }
+}
