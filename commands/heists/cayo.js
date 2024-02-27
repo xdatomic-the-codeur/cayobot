@@ -56,25 +56,26 @@ module.exports = {
         const argent = interaction.options.getInteger('argent') !== null ? interaction.options.getInteger('argent') : 0;
         const joueurs = interaction.options.getInteger('joueurs');
 
-        let min = or * Number(data.Secondaires.Lingots[0]) + coke * Number(data.Secondaires.Cocaïne[0]) + tableaux * Number(data.Secondaires.Tableaux[0]) + cannabis * Number(data.Secondaires.Cannabis[0]) + argent * Number(data.Secondaires.Argent[0]) + Number(data.Principaux[principal][0]);
+        // Objectifs prenables : (minimum)
+        // MaxOr = 1,5; MaxTableaux & MaxCoke = 2; MaxCannabis = 3; MaxArgent = 3
+        let sacJoueurs = [[0, 0], [0, 0], [0, 0], [0, 0]];
+        let capaciteSacs = [100, 100, 100, 100];
+        capaciteSacs = capaciteSacs.slice(0, joueurs)
+        let orPrenable = 0
+        let cokePrenable = 0
+        calculOr()
+        calculCoke()
+
+        let min = orPrenable * Number(data.Secondaires.Lingots[0]) + cokePrenable * Number(data.Secondaires.Cocaïne[0]) + tableaux * Number(data.Secondaires.Tableaux[0]) + cannabis * Number(data.Secondaires.Cannabis[0]) + argent * Number(data.Secondaires.Argent[0]) + Number(data.Principaux[principal][0]);
         min * data.FRAIS;
         min = String(min) + '$';
 
-        let max = or * Number(data.Secondaires.Lingots[1]) + coke * Number(data.Secondaires.Cocaïne[1]) + tableaux * Number(data.Secondaires.Tableaux[1]) + cannabis * Number(data.Secondaires.Cannabis[1]) + argent * Number(data.Secondaires.Argent[1]) + Number(data.Principaux[principal][1]);
+        let max = orPrenable * Number(data.Secondaires.Lingots[1]) + cokePrenable * Number(data.Secondaires.Cocaïne[1]) + tableaux * Number(data.Secondaires.Tableaux[1]) + cannabis * Number(data.Secondaires.Cannabis[1]) + argent * Number(data.Secondaires.Argent[1]) + Number(data.Principaux[principal][1]);
         max * data.FRAIS;
         max = String(max) + '$';
 
-        // Objectifs prenables : (minimum)
-        // MaxOr = 1,5; MaxTableaux & MaxCoke = 2; MaxCannabis = 3; MaxArgent = 3
-        let sacJoueurs = [[], [], [], []];
-        let capaciteSacs = [1, 1, 1, 1];
-        calculOr();
-        sacJoueurs = sacJoueurs.slice(0, joueurs);
-        capaciteSacs = capaciteSacs.slice(0, joueurs);
-        const orPrenable = sacJoueurs.reduce((acc, array) => acc + array[0], 0);
-
         const Embed = new EmbedBuilder()
-            .setTitle('Rentabilitée du cayo')
+            .setTitle(`Rentabilitée du cayo de ${interaction.user.displayName}`)
             .setAuthor({ name: 'Cayobot' })
             .setDescription(`Pour ${joueurs} joueurs avec le maximum au chef`)
             .addFields(
@@ -85,92 +86,57 @@ module.exports = {
                 { name: 'Nombre de cannabis :', value: String(cannabis), inline: true },
                 { name: 'Nombre d\'argent :', value: String(argent), inline: true },
                 { name: '\u200b', value: '\u200b' },
-                { name: 'Minimum (parfait) :', value: min, inline: true },
-                { name: 'Maximum (parfait) :', value: max, inline: true },
+                { name: 'Minimum :', value: String(min), inline: true },
+                { name: 'Maximum :', value: String(max), inline: true },
                 { name: '\u200b', value: '\u200b' },
-                { name: 'Or prenable :', value: String(orPrenable) }
+                { name: 'Or prenable :', value: String(orPrenable), inline: true},
+                { name: 'Coke prenable :', value: String(Math.round(cokePrenable*10)/10), inline: true},
+                { name: '\u200b', value: '\u200b' },
+                { name: "Joueur 1 :", value: 'Sac du joueur 1 (en clicks)'},
+                { name:'or', value: String(sacJoueurs[0][0]*10), inline: true},
+                { name: 'coke', value: String(sacJoueurs[0][1]*10), inline: true},
+                { name: '\u200b', value: '\u200b' },
+                { name: "Joueur 2 :", value: 'Sac du joueur 2 (en clicks)'},
+                { name:'or', value: String(sacJoueurs[1][0]*10), inline: true},
+                { name: 'coke', value: String(Math.round(sacJoueurs[1][1]*10)), inline: true}
             );
-        console.log("Coucou")
         await interaction.reply({ embeds: [Embed] });
 
-        function calculOr() {
-            switch (or) {
-                case 1:
-                    //Remplissage des sacs
-                    sacJoueurs[0][0] = 1;
-                    sacJoueurs[1][0] = 0;
-                    sacJoueurs[2][0] = 0;
-                    sacJoueurs[3][0] = 0;
-                    //Taux de remplissage des sacs
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    break;
-                case 2:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 0.5;
-                    sacJoueurs[2][0] = 0;
-                    sacJoueurs[3][0] = 0;
+        /*
+        sacJoueurs[0] correspond au sac du premier joueur (le print donnera : [1.5, 0] par ex)
+        sacJoueurs[0][0] correpond au nombre d'or dans le sac du premier joueur (selon le même ex que ci dessus, le print donnera : 1.5)
 
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
+        capaciteSacs[0] est la capacité restante dans le sac du premier joueur (ici après l'avoir rempli d'or)
+        Cette variable vas servir pour remplir les sacs avec autre chose que de l'or
 
-                    break;
-                case 3:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 1.5;
-                    sacJoueurs[2][0] = 0;
-                    sacJoueurs[3][0] = 0;
+        */
+        function calculOr(){
+            let orRestant = or
+            let i = 0
+            const placeOr = 100*data.Place.Lingots
+            while(orRestant >= 0.5 && i<joueurs){
+                while(capaciteSacs[i] - placeOr/2>=1 && orRestant>=0.5){
+                    orRestant = orRestant-0.5
+                    orPrenable = orPrenable+0.5
+                    capaciteSacs[i] = capaciteSacs[i]- placeOr/2
+                    sacJoueurs[i][0] = sacJoueurs[i][0] +0.5
+                }
+                i++
+            }
+        }
 
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
-
-                    break;
-                case 4:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 1.5;
-                    sacJoueurs[2][0] = 1;
-                    sacJoueurs[3][0] = 0;
-
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
-                    capaciteSacs[2] = capaciteSacs[2] - (sacJoueurs[2][0] * data.Place.Lingots);
-
-                    break;
-                case 5:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 1.5;
-                    sacJoueurs[2][0] = 1.5;
-                    sacJoueurs[3][0] = 0.5;
-
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
-                    capaciteSacs[2] = capaciteSacs[2] - (sacJoueurs[2][0] * data.Place.Lingots);
-                    capaciteSacs[3] = capaciteSacs[3] - (sacJoueurs[3][0] * data.Place.Lingots);
-
-                    break;
-                case 6:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 1.5;
-                    sacJoueurs[2][0] = 1.5;
-                    sacJoueurs[3][0] = 1.5;
-
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
-                    capaciteSacs[2] = capaciteSacs[2] - (sacJoueurs[2][0] * data.Place.Lingots);
-                    capaciteSacs[3] = capaciteSacs[3] - (sacJoueurs[3][0] * data.Place.Lingots);
-
-                    break;
-                case 7:
-                    sacJoueurs[0][0] = 1.5;
-                    sacJoueurs[1][0] = 1.5;
-                    sacJoueurs[2][0] = 1.5;
-                    sacJoueurs[3][0] = 1.5;
-
-                    capaciteSacs[0] = capaciteSacs[0] - (sacJoueurs[0][0] * data.Place.Lingots);
-                    capaciteSacs[1] = capaciteSacs[1] - (sacJoueurs[1][0] * data.Place.Lingots);
-                    capaciteSacs[2] = capaciteSacs[2] - (sacJoueurs[2][0] * data.Place.Lingots);
-                    capaciteSacs[3] = capaciteSacs[3] - (sacJoueurs[3][0] * data.Place.Lingots);
-
-                    break;
+        function calculCoke(){
+            let cokeRestant = coke
+            let i = 0
+            const placeCoke = 100*data.Place.Cocaïne
+            while(cokeRestant>0 && i<joueurs){
+                while(capaciteSacs[i] - placeCoke/10 >=4 && cokeRestant>=0.1){
+                    cokeRestant -= 0.1
+                    cokePrenable += 0.1
+                    capaciteSacs[i] = capaciteSacs[i] - placeCoke/10
+                    sacJoueurs[i][1] = sacJoueurs[i][1] + 0.1
+                }
+                i++
             }
         }
     },
