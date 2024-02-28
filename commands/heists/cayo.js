@@ -58,13 +58,19 @@ module.exports = {
 
         // Objectifs prenables : (minimum)
         // MaxOr = 1,5; MaxTableaux & MaxCoke = 2; MaxCannabis = 3; MaxArgent = 3
-        let sacJoueurs = [[0, 0], [0, 0], [0, 0], [0, 0]];
+        let sacJoueurs = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
         let capaciteSacs = [100, 100, 100, 100];
         capaciteSacs = capaciteSacs.slice(0, joueurs)
         let orPrenable = 0
         let cokePrenable = 0
+        let cannabisPrenable = 0
+        let argentPrenable = 0
+        let tableauxPrenable = 0
         calculOr()
         calculCoke()
+        calculCannabis()
+        calculTableaux()
+        calculArgent()
 
         let min = orPrenable * Number(data.Secondaires.Lingots[0]) + cokePrenable * Number(data.Secondaires.Cocaïne[0]) + tableaux * Number(data.Secondaires.Tableaux[0]) + cannabis * Number(data.Secondaires.Cannabis[0]) + argent * Number(data.Secondaires.Argent[0]) + Number(data.Principaux[principal][0]);
         min * data.FRAIS;
@@ -89,17 +95,43 @@ module.exports = {
                 { name: 'Minimum :', value: String(min), inline: true },
                 { name: 'Maximum :', value: String(max), inline: true },
                 { name: '\u200b', value: '\u200b' },
-                { name: 'Or prenable :', value: String(orPrenable), inline: true},
-                { name: 'Coke prenable :', value: String(Math.round(cokePrenable*10)/10), inline: true},
-                { name: '\u200b', value: '\u200b' },
-                { name: "Joueur 1 :", value: 'Sac du joueur 1 (en clicks)'},
-                { name:'or', value: String(sacJoueurs[0][0]*10), inline: true},
-                { name: 'coke', value: String(sacJoueurs[0][1]*10), inline: true},
-                { name: '\u200b', value: '\u200b' },
-                { name: "Joueur 2 :", value: 'Sac du joueur 2 (en clicks)'},
-                { name:'or', value: String(sacJoueurs[1][0]*10), inline: true},
-                { name: 'coke', value: String(Math.round(sacJoueurs[1][1]*10)), inline: true}
             );
+        if(orPrenable>0){
+            Embed.addFields({ name: 'Or prenable :', value: String(orPrenable), inline: true})
+        }
+        if(cokePrenable>0){
+            Embed.addFields({ name: 'Coke prenable :', value: String(Math.round(cokePrenable*10)/10), inline: true})
+        }
+        if(cannabisPrenable>0){
+            Embed.addFields({ name: 'Cannabis prenable :', value: String(Math.round(cannabisPrenable*10)/10), inline: true})
+        }
+        if(tableauxPrenable>0){
+            Embed.addFields({ name: 'Tableaux prenables :', value: String(Math.round(tableauxPrenable*10)/10), inline: true})
+        }
+        if(argentPrenable>0){
+            Embed.addFields({ name: 'Argent prenable :', value: String(Math.round(argentPrenable*10)/10), inline: true})
+        }
+        if(orPrenable >0 || cokePrenable>0 || cannabisPrenable>0 || tableauxPrenable>0 || argentPrenable>0){
+            Embed.addFields({ name: '\u200b', value: '\u200b'})
+        }
+        for(let i = 0; i<joueurs; i++){
+            Embed.addFields({ name: `Joueur ${i+1} :`, value: `Capacité du joueur ${i+1} (en clicks)`})
+            if(sacJoueurs[i][0]>0){
+                Embed.addFields({ name: 'Or', value: String(sacJoueurs[i][0]*10), inline: true})
+            }
+            if(sacJoueurs[i][1]>0){
+                Embed.addFields({ name: 'Coke', value: String(Math.round(sacJoueurs[i][1]*10)), inline: true})
+            }
+            if(sacJoueurs[i][2]>0){
+                Embed.addFields({ name: 'Cannabis', value: String(Math.round(sacJoueurs[i][2]*10)), inline: true})
+            }
+            if(sacJoueurs[i][3]>0){
+                Embed.addFields({ name: 'Tableaux', value: String(sacJoueurs[i][3]), inline: true})
+            }
+            if(sacJoueurs[i][4]>0){
+                Embed.addFields({ name: 'Argent', value: String(Math.round(sacJoueurs[i][4]*10)), inline: true})
+            }
+        }
         await interaction.reply({ embeds: [Embed] });
 
         /*
@@ -135,6 +167,49 @@ module.exports = {
                     cokePrenable += 0.1
                     capaciteSacs[i] = capaciteSacs[i] - placeCoke/10
                     sacJoueurs[i][1] = sacJoueurs[i][1] + 0.1
+                }
+                i++
+            }
+        }
+
+        function calculCannabis(){
+            let cannabisRestant = cannabis
+            let i = 0
+            const placeCannabis = 100*data.Place.Cannabis
+            while(cannabisRestant>0 && i<joueurs){
+                while(capaciteSacs[i] - placeCannabis/10 >=1 && cannabisRestant>=0.1){
+                    cannabisRestant -= 0.1
+                    cannabisPrenable += 0.1
+                    capaciteSacs[i] = capaciteSacs[i] - placeCannabis/10
+                    sacJoueurs[i][2] += 0.1
+                }
+                i++
+            }
+        }
+        function calculTableaux(){
+            let tableauxRestant = tableaux
+            let i = 0
+            const placeTableaux = data.Place.Tableaux*100
+            while(tableauxRestant>0 && i<joueurs){
+                while(capaciteSacs[i] - placeTableaux >= 0 && tableauxRestant>=1){
+                    tableauxRestant -= 1
+                    tableauxPrenable++
+                    capaciteSacs[i] = capaciteSacs[i] - placeTableaux
+                    sacJoueurs[i][3]++
+                }
+                i++
+            }
+        }
+        function calculArgent(){
+            let argentRestant = argent
+            let i = 0
+            const placeArgent = 100*data.Place.Argent
+            while(argentRestant>0 && i<joueurs){
+                while(capaciteSacs[i] - placeArgent/10 >=0 && argentRestant>=0.1){
+                    argentRestant-=0.1
+                    argentPrenable+=0.1
+                    capaciteSacs[i] = capaciteSacs[i] - placeArgent/10
+                    sacJoueurs[i][4] += 0.1
                 }
                 i++
             }
