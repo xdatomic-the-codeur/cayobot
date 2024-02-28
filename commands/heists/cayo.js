@@ -22,6 +22,11 @@ module.exports = {
             .setMinValue(1)
             .setMaxValue(4)
         )
+        .addBooleanOption(option =>
+            option.setName('difficile')
+            .setDescription('Mode difficile')
+            .setRequired(true)
+        )
         .addIntegerOption(option => option.setName('or')
             .setDescription('Nombre d\'or dans le braquage')
             .setMinValue(0)
@@ -55,6 +60,7 @@ module.exports = {
         const cannabis = interaction.options.getInteger('cannabis') !== null ? interaction.options.getInteger('cannabis') : 0;
         const argent = interaction.options.getInteger('argent') !== null ? interaction.options.getInteger('argent') : 0;
         const joueurs = interaction.options.getInteger('joueurs');
+        const difficile = interaction.options.getBoolean('difficile')
 
         // Objectifs prenables : (minimum)
         // MaxOr = 1,5; MaxTableaux & MaxCoke = 2; MaxCannabis = 3; MaxArgent = 3
@@ -66,18 +72,22 @@ module.exports = {
         let cannabisPrenable = 0
         let argentPrenable = 0
         let tableauxPrenable = 0
+        const partChef = (100 - (joueurs-1)*15)/100
+        console.log(partChef)
         calculOr()
         calculCoke()
         calculCannabis()
         calculTableaux()
         calculArgent()
 
-        let min = orPrenable * Number(data.Secondaires.Lingots[0]) + cokePrenable * Number(data.Secondaires.Cocaïne[0]) + tableaux * Number(data.Secondaires.Tableaux[0]) + cannabis * Number(data.Secondaires.Cannabis[0]) + argent * Number(data.Secondaires.Argent[0]) + Number(data.Principaux[principal][0]);
-        min * data.FRAIS;
+        let min = orPrenable * Number(data.Secondaires.Lingots[0]) + cokePrenable * Number(data.Secondaires.Cocaïne[0]) + tableauxPrenable * Number(data.Secondaires.Tableaux[0]) + cannabisPrenable * Number(data.Secondaires.Cannabis[0]) + argentPrenable * Number(data.Secondaires.Argent[0]) + (difficile ? Number(data.Principaux[principal][1]) : Number(data.Principaux[principal][0])) + data.Secondaires.Bureau[0] ;
+        min = min * data.FRAIS;
+        min = min * partChef
         min = String(min) + '$';
 
-        let max = orPrenable * Number(data.Secondaires.Lingots[1]) + cokePrenable * Number(data.Secondaires.Cocaïne[1]) + tableaux * Number(data.Secondaires.Tableaux[1]) + cannabis * Number(data.Secondaires.Cannabis[1]) + argent * Number(data.Secondaires.Argent[1]) + Number(data.Principaux[principal][1]);
-        max * data.FRAIS;
+        let max = orPrenable * Number(data.Secondaires.Lingots[1]) + cokePrenable * Number(data.Secondaires.Cocaïne[1]) + tableauxPrenable * Number(data.Secondaires.Tableaux[1]) + cannabisPrenable * Number(data.Secondaires.Cannabis[1]) + argentPrenable * Number(data.Secondaires.Argent[1]) + (difficile ? Number(data.Principaux[principal][1]) : Number(data.Principaux[principal][0])) + data.Secondaires.Bureau[1];
+        max =  max * data.FRAIS;
+        max = max * partChef
         max = String(max) + '$';
 
         const Embed = new EmbedBuilder()
